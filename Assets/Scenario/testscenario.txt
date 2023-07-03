@@ -1,0 +1,20 @@
+----------------------------------------------TEST SCENARIO----------------------------------------------------------
+Начало.
+SetBack;Tree|the quick brown fox jumps over the lazy dog...? THE QUICK BROWN FOX JUMPS OVER THER LAZY DOG...! СЪЕШЬ Ж ЕЩЁ ЭТИХ МЯГКИХ ФРАНЦУЗСКИХ БУЛОК ДА ВЫПЕЙ ЧАЮ...! съешь ж ещё этих мягких французских булок да выпей чаю 0123456789!@#$%^&*()_+
+SetBack;Field|CreateCharacter;Miki;Casual;Smile;Blush;A| Вот Я! :)
+SetBack;Tree|SetMusic;Night|MoveCharacter;Miki;300|(перемещение) Вот я меняю позицию
+SetBack;Field|ChangeSprite;Miki;Gym;Frown;;D|SetName;Мики|(Смена эмоции) А вот спрайт поменяла. И имя заодно
+DeleteSprite;Miki|Я удалилась.
+SetBack;Field|CreateCharacter;Miki;Casual;Smile;Blush;A|Я вернулась
+Choose;Довериться,9;Не доверять,10|Сделай выбор
+SetBack;Field|ChangeParameter;Rep;1|GoLine;10|SetName;|Ты доверился! :)
+SetBack;Field|ChangeParameter;Rep;-1|Ты не доверился! :(
+SetBack;Tree|А ТЕПЕРЬ БЫСТРО! СДЕЛАЙ ВЫБОР
+SetBack;Field|Choose;Да,13;Нет,14|SetTimer;5|[Выбор с таймером]
+SetBack;Field|ChangeParameter;Rep;1|GoLine;14|Ты ответил да
+SetBack;Field|ChangeParameter;Rep;-1|Ты ответил нет
+SetBack;Tree|Compare;Rep;1;16|[Изменение характеристик]
+ShowEnd;|Твоя репутация меньше или равна нулю. За это ты получаешь плохую концовку.
+ShowEnd;|Твоя репутация больше нуля. Я дарю тебе хорошую концовку.
+
+GoLine;1|[Концовки]

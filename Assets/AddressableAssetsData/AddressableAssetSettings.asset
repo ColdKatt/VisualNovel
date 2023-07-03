@@ -1,0 +1,113 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 468a46d0ae32c3544b7d98094e6448a9, type: 3}
+  m_Name: AddressableAssetSettings
+  m_EditorClassIdentifier: 
+  m_DefaultGroup: 8fec5f260a9015d41b72e0d371ff98de
+  m_currentHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_OptimizeCatalogSize: 0
+  m_BuildRemoteCatalog: 0
+  m_BundleLocalCatalog: 0
+  m_CatalogRequestsTimeout: 0
+  m_DisableCatalogUpdateOnStart: 0
+  m_IgnoreUnsupportedFilesInBuild: 0
+  m_UniqueBundleIds: 0
+  m_NonRecursiveBuilding: 1
+  m_CCDEnabled: 0
+  m_maxConcurrentWebRequests: 3
+  m_ContiguousBundles: 1
+  m_StripUnityVersionFromBundleBuild: 0
+  m_DisableVisibleSubAssetRepresentations: 0
+  m_ShaderBundleNaming: 0
+  m_ShaderBundleCustomNaming: 
+  m_MonoScriptBundleNaming: 0
+  m_CheckForContentUpdateRestrictionsOption: 0
+  m_MonoScriptBundleCustomNaming: 
+  m_RemoteCatalogBuildPath:
+    m_Id: 
+  m_RemoteCatalogLoadPath:
+    m_Id: 
+  m_ContentStateBuildPathProfileVariableName: <default settings path>
+  m_CustomContentStateBuildPath: 
+  m_ContentStateBuildPath: 
+  m_BuildAddressablesWithPlayerBuild: 0
+  m_overridePlayerVersion: '[UnityEditor.PlayerSettings.bundleVersion]'
+  m_GroupAssets:
+  - {fileID: 11400000, guid: 0161ca6383a95dc4ebd1d61fba5ffd3e, type: 2}
+  - {fileID: 11400000, guid: 1a5673066380a544da365ff4ecf48fc4, type: 2}
+  m_BuildSettings:
+    m_CompileScriptsInVirtualMode: 0
+    m_CleanupStreamingAssetsAfterBuilds: 1
+    m_LogResourceManagerExceptions: 1
+    m_BundleBuildPath: Temp/com.unity.addressables/AssetBundles
+  m_ProfileSettings:
+    m_Profiles:
+    - m_InheritedParent: 
+      m_Id: 9f48a5bb0e51f784e96e542974240fef
+      m_ProfileName: Default
+      m_Values:
+      - m_Id: 9253670b1eb84004fb51763d627975dd
+        m_Value: '[UnityEditor.EditorUserBuildSettings.activeBuildTarget]'
+      - m_Id: cd6382a11ea725242bd43883df10c4da
+        m_Value: '[UnityEngine.AddressableAssets.Addressables.BuildPath]/[BuildTarget]'
+      - m_Id: 9fe4e0e8e2e350a4cbe7e6386579fa75
+        m_Value: '{UnityEngine.AddressableAssets.Addressables.RuntimePath}/[BuildTarget]'
+      - m_Id: 9453b273af322a9468bf9768a20d9ed8
+        m_Value: ServerData/[BuildTarget]
+      - m_Id: 242bd614b7d082a41813e5fbf6a8bdfb
+        m_Value: http://[PrivateIpAddress]:[HostingServicePort]
+    m_ProfileEntryNames:
+    - m_Id: 9253670b1eb84004fb51763d627975dd
+      m_Name: BuildTarget
+      m_InlineUsage: 0
+    - m_Id: cd6382a11ea725242bd43883df10c4da
+      m_Name: Local.BuildPath
+      m_InlineUsage: 0
+    - m_Id: 9fe4e0e8e2e350a4cbe7e6386579fa75
+      m_Name: Local.LoadPath
+      m_InlineUsage: 0
+    - m_Id: 9453b273af322a9468bf9768a20d9ed8
+      m_Name: Remote.BuildPath
+      m_InlineUsage: 0
+    - m_Id: 242bd614b7d082a41813e5fbf6a8bdfb
+      m_Name: Remote.LoadPath
+      m_InlineUsage: 0
+    m_ProfileVersion: 1
+  m_LabelTable:
+    m_LabelNames:
+    - default
+    - Miki
+    - Casual
+    - Smile
+    - Blush
+  m_SchemaTemplates: []
+  m_GroupTemplateObjects:
+  - {fileID: 11400000, guid: 4db6ad45d3e1cb94da0ced3ea419c0e3, type: 2}
+  m_InitializationObjects: []
+  m_CertificateHandlerType:
+    m_AssemblyName: 
+    m_ClassName: 
+  m_ActivePlayerDataBuilderIndex: 3
+  m_DataBuilders:
+  - {fileID: 11400000, guid: f63d226c1336c5b4c8bea72b6f414092, type: 2}
+  - {fileID: 11400000, guid: ab10dfeaec386bf4982687aaae74d683, type: 2}
+  - {fileID: 11400000, guid: 291dcbc74eb96ab4094bb800dc168553, type: 2}
+  - {fileID: 11400000, guid: 58e31eea2b7b91f4d9c69bc5d9370129, type: 2}
+  m_ActiveProfileId: 9f48a5bb0e51f784e96e542974240fef
+  m_HostingServicesManager:
+    m_HostingServiceInfos: []
+    m_Settings: {fileID: 11400000}
+    m_NextInstanceId: 0
+    m_RegisteredServiceTypeRefs: []
+    m_PingTimeoutInMilliseconds: 5000
