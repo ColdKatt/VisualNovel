@@ -2,13 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Parameters management class
+/// </summary>
 public class GameParameters : MonoBehaviour
 {
     public static Dictionary<string, int> s_Parameters;
-
     public static List<Dictionary<string, int>> s_ParametersHistory;
-    // Start is called before the first frame update
-    void Start()
+
+    private void Start()
     {
         s_Parameters = new Dictionary<string, int>();
         s_ParametersHistory = new List<Dictionary<string, int>>();
@@ -16,13 +18,13 @@ public class GameParameters : MonoBehaviour
 
     public static void ChangeParameter(string parameter, int shift)
     {
-        s_ParametersHistory.Add(s_Parameters);
+        s_ParametersHistory.Add(new Dictionary<string, int>(s_Parameters));
+
         if (!s_Parameters.ContainsKey(parameter))
         {
             s_Parameters.Add(parameter, 0);
         }
-        s_Parameters[parameter] += shift;
 
-        Debug.Log($"{parameter} = {s_Parameters[parameter]}");
+        s_Parameters[parameter] += shift;
     }
 }

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<scenario>
+    <textLine><text>----------------------------------------------TEST SCENARIO----------------------------------------------------------</text></textLine>
+    
+		<textLine><text>Начало.</text></textLine>
+
+    <textLine>
+      <sceneData back="Tree"></sceneData>
+      <text>the quick brown fox jumps over the lazy dog...? THE QUICK BROWN FOX JUMPS OVER THER LAZY DOG...! СЪЕШЬ Ж ЕЩЁ ЭТИХ МЯГКИХ ФРАНЦУЗСКИХ БУЛОК ДА ВЫПЕЙ ЧАЮ...! съешь ж ещё этих мягких французских булок да выпей чаю 0123456789!@#$%^*()_+</text>
+    </textLine>
+
+    <textLine>
+      <sceneData></sceneData>
+      <sprites>
+        <sprite init="Miki,Casual,Smile,Blush,A"></sprite>
+      </sprites>
+      <text speaker="Miki">Вот Я! :)</text>
+    </textLine>
+
+    <textLine>
+      <sceneData music="Night"></sceneData>
+      <sprites>
+        <sprite move="Miki,300"></sprite>
+      </sprites>
+      <text>Вот я меняю позицию</text>
+    </textLine>
+    
+    <textLine>
+      <sprites>
+        <sprite change="Miki,Gym,Frown,,D"></sprite>
+      </sprites>
+      <text speaker="Машка">А вот спрайт поменяла. И имя заодно</text>
+    </textLine>
+
+    <textLine>
+      <sprites>
+        <sprite delete="Miki"></sprite>
+      </sprites>
+      <text>Я удалилась.</text>
+    </textLine>
+
+    <textLine>
+      <sprites>
+        <sprite init="Miki,Casual,Smile,Blush,A"></sprite>
+      </sprites>
+      <text>Я вернулась.</text>
+    </textLine>
+
+    <textLine>
+      <sceneData choose="Довериться;9,Не доверять;10"></sceneData>
+      <text>Сделай выбор</text>
+    </textLine>
+
+    <textLine go="10">
+      <params>
+        <param shift="Rep,1"></param>
+      </params>
+      <text>Ты доверился :)</text>
+    </textLine>
+
+    <textLine>
+      <params>
+        <param shift="Rep,-1"></param>
+      </params>
+      <text>Ты не доверился! :(</text>
+    </textLine>
+
+    <textLine>
+      <sceneData back="Field" choose="Да;12,Нет;13" time="5"></sceneData>
+      <text>А ТЕПЕРЬ БЫСТРО! СДЕЛАЙ ВЫБОР</text>
+    </textLine>
+
+    <textLine go="13">
+      <params>
+        <param shift="Rep,1"></param>
+      </params>
+      <text>Ты ответил да!</text>
+    </textLine>
+    
+    <textLine>
+      <params>
+        <param shift="Rep,-1"></param>
+      </params>
+      <text>Ты ответил нет!</text>
+    </textLine>
+    
+    <textLine compare="Rep,1,15">
+      <sprites>
+        <sprite move="Miki, 500"></sprite>
+      </sprites>
+      <text>Сравнивание параметров...</text>
+    </textLine>
+
+    <textLine end="">
+      <text>Вы получили плохую концовку</text>
+    </textLine>
+
+    <textLine end="">
+      <text>Вы получили хорошую концовку</text>
+    </textLine>
+	</scenario>
+</root>

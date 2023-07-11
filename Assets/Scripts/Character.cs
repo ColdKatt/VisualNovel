@@ -5,53 +5,80 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
+/// <summary>
+/// A class containing character data
+/// </summary>
 public class Character : MonoBehaviour
 {
-    public CharacterData Data;
+    private CharacterData _data;
 
     private string _currentSpriteName;
 
     private Image _image;
 
-    public AsyncOperationHandle<Sprite> CurrentSprite;
+    private AsyncOperationHandle<Sprite> _currentSpriteHandle;
 
-    void Awake()
-    {
-        _image = gameObject.GetComponent<Image>();
-        _image.color = new Color(255, 255, 255, 0);
-    }
+    private RectTransform _rectTransform;
 
     public void Init(string name, string clothes, string emote, string extra, string pose)
     {
-        if (Data == null)
+        if (_data == null)
         {
-            Data = ScriptableObject.CreateInstance<CharacterData>();
+            _data = new CharacterData(name, clothes, emote, extra, pose);
         }
-        Data.Name = name;
-        Data.Clothes = clothes;
-        Data.Emote = emote;
-        Data.Extra = extra;
-        Data.Pose = pose;
-        _currentSpriteName = Data.Name + Data.Clothes + Data.Emote + Data.Extra + Data.Pose;
+        else
+        {
+            _data.Name = name;
+            _data.Clothes = clothes;
+            _data.Emote = emote;
+            _data.Extra = extra;
+            _data.Pose = pose;
+        }
 
-        CurrentSprite = Addressables.LoadAssetAsync<Sprite>(_currentSpriteName);
-        CurrentSprite.Completed += ChangeSprite;
-        Debug.Log(_currentSpriteName);
+        _currentSpriteName = _data.Name + _data.Clothes + _data.Emote + _data.Extra + _data.Pose;
+
+        _currentSpriteHandle = Addressables.LoadAssetAsync<Sprite>(_currentSpriteName);
+        _currentSpriteHandle.Completed += ChangeSprite;
+    }
+
+    public string[] GetCharacterData()
+    {
+        return new string[] { _data.Name, _data.Clothes, _data.Emote, _data.Extra, _data.Pose };
     }
 
     public void ChangeSprite(AsyncOperationHandle<Sprite> sprite)
     {
-        Debug.Log("IC");
         if (sprite.Status == AsyncOperationStatus.Succeeded)
         {
-            Debug.Log(_image);
             _image.sprite = sprite.Result;
             _image.color = new Color(1, 1, 1, 255);
         }
     }
 
+    public void MoveSprite(Vector3 shift)
+    {
+        _rectTransform.localPosition += shift;
+    }
+
+    public void SetPosition(Vector3 position)
+    {
+        _rectTransform.localPosition = new Vector3(position.x, _rectTransform.localPosition.y, _rectTransform.localPosition.z);
+    }
+
+    public Vector3 GetPosition()
+    {
+        return _rectTransform.localPosition;
+    }
+
+    private void Awake()
+    {
+        _image = gameObject.GetComponent<Image>();
+        _image.color = new Color(255, 255, 255, 0);
+        _rectTransform = GetComponent<RectTransform>();
+    }
+
     private void OnDestroy()
     {
-        CurrentSprite.Completed -= ChangeSprite;
+        _currentSpriteHandle.Completed -= ChangeSprite;
     }
 }

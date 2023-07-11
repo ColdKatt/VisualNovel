@@ -7,134 +7,60 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.UI;
 
+/// <summary>
+/// A class for managing commands from an xml scenario file
+/// </summary>
 public class Commands : MonoBehaviour
 {
-    public static Dictionary<string, Delegate> s_Commands;
+    public static Dictionary<string, string> s_Commands;
 
     public static Dictionary<string, Character> s_Characters;
 
-    public static bool s_isChooseEventActive = false;
+    public static bool s_IsChooseEventActive = false;
+    public static bool s_IsEndReached = false;
+
+    public SceneData SceneData;
+
+    public TextAppear TextAppear;
+
+    [SerializeField] private Image _backImage;
+    [SerializeField] private TMP_Text _timerText;
+    [SerializeField] private TMP_Text _characterName;
+    [SerializeField] private AudioSource _audioSource;
+    [SerializeField] private Transform _chooseWindow;
+    [SerializeField] private Transform _spriteHandle;
+    [SerializeField] private TMP_Text _parameterInfoText;
+    [SerializeField] private GameObject _endPanel;
 
     private Button _timeoutButton;
     private Coroutine _timeCoroutine;
-    public TMP_Text TimerText;
 
-    public TMP_Text CharacterName;
+    private AsyncOperationHandle<Sprite> _backHandle;
+    private AsyncOperationHandle<AudioClip> _musicHandle;
+    private AsyncOperationHandle<GameObject> _buttonHandle;
+    private AsyncOperationHandle<GameObject> _characterTemplateHandle;
 
-    // SetBack;backName|
-    public AsyncOperationHandle<Sprite> back;
-    public Image backImage;
-
-    public delegate void OnBackSet(params string[] background);
-    public OnBackSet onBackSet;
-
-    // SetMusic;musicName|
-    public AsyncOperationHandle<AudioClip> music;
-    public AudioSource audioSource;
-
-    public delegate void OnMusicSet(params string[] music);
-    public OnMusicSet onMusicSet;
-
-    // Choose;chooseText,lineNum;chooseText2,lineNum2;...|
-    public AsyncOperationHandle<GameObject> button;
-    public delegate void OnChoose(params string[] chooses);
-    public OnChoose onChoose;
-    public Transform chooseWindow;
-
-    //SetTimer;time|
-    public delegate void OnTimerSet(params string[] time);
-    public OnTimerSet onTimerSet;
-
-    // ChangeParameter;parameterName;shift|
-    public delegate void OnParameterChange(params string[] parameterData);
-    public OnParameterChange onParameterChange;
-
-    // CreateCharacter;name;clothes;emote;extra;pose|
-    public AsyncOperationHandle<GameObject> characterTemplate;
-    public delegate void OnCreateCharacter(params string[] characterData);
-    public OnCreateCharacter onCreateCharacter;
-    public Transform SpriteHandle;
-
-    //ChangeSprite;name;clothes;emote;extra;pose|
-    public delegate void OnChangeSprite(params string[] spriteData);
-    public OnChangeSprite onChangeSprite;
-
-    //DeleteSprite;name|
-    public delegate void OnSpriteDelete(params string[] spriteName);
-    public OnSpriteDelete onSpriteDelete;
-
-    //GoToLine;lineNum|
-    public delegate void OnLineChange(params string[] lineNum);
-    public OnLineChange onLineChange;
-
-    //Compare;parameterName;compareValue;lineNum|
-    public delegate void OnCompare(params string[] compareData);
-    public OnCompare onCompare;
-
-    //SetName;name|
-    public delegate void OnNameSet(params string[] name);
-    public OnNameSet onNameSet;
-
-    //MoveCharacter;name;shift|
-    public delegate void OnMove(params string[] moveData);
-    public OnMove onMove;
-
-    //ShowEnd;|
-    public TMP_Text ParameterInfoText;
-    public GameObject EndPanel;
-    public delegate void OnEnd(params string[] end);
-    public OnEnd onEnd;
-
-    void Start()
+    public void SetBack(string[] backName)
     {
-        TimerText.alpha = 0f;
-        s_Commands = new Dictionary<string, Delegate>();
-        s_Characters = new Dictionary<string, Character>();
-        onBackSet += SetBack;
-        onChoose += Choose;
-        onMusicSet += SetMusic;
-        onCreateCharacter += CreateCharacter;
-        onChangeSprite += ChangeSprite;
-        onSpriteDelete += DeleteSprite;
-        onLineChange += GoLine;
-        onCompare += Compare;
-        onTimerSet += SetTimer;
-        onNameSet += SetName;
-        onMove += MoveCharacter;
-        onEnd += ShowEnd;
-        s_Commands.Add("SetBack", onBackSet);
-        s_Commands.Add("Choose", onChoose);
-        s_Commands.Add("SetMusic", onMusicSet);
-        s_Commands.Add("CreateCharacter", onCreateCharacter);
-        s_Commands.Add("ChangeSprite", onChangeSprite);
-        s_Commands.Add("DeleteSprite", onSpriteDelete);
-        s_Commands.Add("GoLine", onLineChange);
-        s_Commands.Add("Compare", onCompare);
-        s_Commands.Add("SetTimer", onTimerSet);
-        s_Commands.Add("SetName", onNameSet);
-        s_Commands.Add("MoveCharacter", onMove);
-        s_Commands.Add("ShowEnd", onEnd);
-        button = Addressables.LoadAssetAsync<GameObject>("ChooseButton");
-        characterTemplate = Addressables.LoadAssetAsync<GameObject>("Character");
+        _backHandle = Addressables.LoadAssetAsync<Sprite>(backName[0]);
+        _backHandle.Completed += ChangeBackground;
+
+        SceneData.CurrentBack = backName[0];
     }
 
-    public void SetBack(params string[] backName)
+    public void SetMusic(string[] musicName)
     {
-        back = Addressables.LoadAssetAsync<Sprite>(backName[0]);
-        back.Completed += ChangeBackground;
-    }
+        _musicHandle = Addressables.LoadAssetAsync<AudioClip>(musicName[0]);
+        _musicHandle.Completed += ChangeMusic;
 
-    public void SetMusic(params string[] musicName)
-    {
-        music = Addressables.LoadAssetAsync<AudioClip>(musicName[0]);
-        music.Completed += ChangeMusic;
+        SceneData.CurrentMusic = musicName[0];
     }
 
     public void ChangeBackground(AsyncOperationHandle<Sprite> back)
     {
         if (back.Status == AsyncOperationStatus.Succeeded)
         {
-            backImage.sprite = back.Result;
+            _backImage.sprite = back.Result;
         }
     }
 
@@ -142,33 +68,36 @@ public class Commands : MonoBehaviour
     {
         if (music.Status == AsyncOperationStatus.Succeeded)
         {
-            audioSource.clip = music.Result;
-            audioSource.Play();
+            _audioSource.clip = music.Result;
+            _audioSource.Play();
         }
     }
 
-    public void Choose(params string[] chooses)
+    /// <summary>
+    /// Creates a choose event and generates options
+    /// </summary>
+    /// <param name="chooses">An array of elements having the structure: optionLabel;lineNumber</param>
+    public void Choose(string[] chooses)
     {
-        s_isChooseEventActive = true;
-        Debug.Log("Enter");
+        s_IsChooseEventActive = true;
         for (var i = 0; i < chooses.Length; i++)
         {
-            if (button.Status == AsyncOperationStatus.Succeeded)
+            if (_buttonHandle.Status == AsyncOperationStatus.Succeeded)
             {
-                var chooseParams = chooses[i].Split(',');
-                var chooseButton = Instantiate(button.Result, chooseWindow);
+                var chooseParams = chooses[i].Split(';');
+                var chooseButton = Instantiate(_buttonHandle.Result, _chooseWindow);
+
                 var sign = i % 2 == 0 ? 1 : -1;
                 var delta = i % 2 == 0 ? i / 2 : (i / 2) + 1;
-                Debug.Log(delta);
                 chooseButton.GetComponent<RectTransform>().localPosition = new Vector2(0, delta * 45 * sign);
+
                 chooseButton.GetComponentInChildren<TMP_Text>().text = chooseParams[0];
                 var chooseButtonComp = chooseButton.GetComponent<Button>();
-                chooseButtonComp.onClick.AddListener(() => GoLine(chooseParams[1]));
-                chooseButtonComp.onClick.AddListener(() => History.CreateElement(chooseParams[0], TextAppear.currentLine));
-                chooseButtonComp.onClick.AddListener(() => s_isChooseEventActive = false);
-                chooseButtonComp.onClick.AddListener(() => TimerText.alpha = 0f);
-                chooseButtonComp.onClick.AddListener(() => StopTimer());
-                chooseButtonComp.onClick.AddListener(() => DestroyChooseButtons());
+
+                chooseButtonComp.onClick.AddListener(() => History.CreateElement(chooseParams[0], TextAppear.CurrentLine));
+                chooseButtonComp.onClick.AddListener(() => TextAppear.ChangeCurrentLine(int.Parse(chooseParams[1]), true));
+                chooseButtonComp.onClick.AddListener(() => CancelChoose());
+
                 if (i == chooses.Length - 1)
                 {
                     _timeoutButton = chooseButtonComp;
@@ -177,50 +106,68 @@ public class Commands : MonoBehaviour
         }
     }
 
-    public void ChangeParameter(params string[] parameterData)
+    /// <summary>
+    /// Changes the parameter by this value. Creates a new parameter if there is none in the dictionary <see cref="GameParameters.s_Parameters"/>
+    /// </summary>
+    /// <param name="data">An array of two elements: 0 - Parameter name, 1 - Shift</param>
+    public void ChangeParameter(string[] data)
     {
-        GameParameters.ChangeParameter(parameterData[0], int.Parse(parameterData[1]));
+        GameParameters.ChangeParameter(data[0], int.Parse(data[1]));
     }
 
     public void DestroyChooseButtons()
     {
-        foreach (Transform child in chooseWindow)
+        foreach (Transform child in _chooseWindow)
         {
             child.GetComponent<Button>().onClick.RemoveAllListeners();
             Destroy(child.gameObject);
         }
     }
 
-    public void CreateCharacter(params string[] characterData)
+    /// <summary>
+    /// Creates a new character that is not yet in the dictionary <see cref="s_Characters"/>
+    /// </summary>
+    /// <param name="characterData">An array of five elements: name,clothes,emote,extra,pose</param>
+    public void CreateCharacter(string[] characterData)
     {
         var name = characterData[0];
         var clothes = characterData[1];
         var emote = characterData[2];
         var extra = characterData[3];
         var pose = characterData[4];
-        if (characterTemplate.Status == AsyncOperationStatus.Succeeded && !s_Characters.ContainsKey(name))
+
+        if (_characterTemplateHandle.Status == AsyncOperationStatus.Succeeded && !s_Characters.ContainsKey(name))
         {
-            var character = Instantiate(characterTemplate.Result, SpriteHandle);
+            var character = Instantiate(_characterTemplateHandle.Result, _spriteHandle);
             var characterComponent = character.GetComponent<Character>();
             characterComponent.Init(name, clothes, emote, extra, pose);
             s_Characters.Add(name, characterComponent);
         }
     }
 
-    public void ChangeSprite(params string[] spriteData)
+    /// <summary>
+    /// Modifies the data of a character that exists in the dictionary <see cref="s_Characters"/>
+    /// </summary>
+    /// <param name="spriteData">An array of five elements: name,clothes,emote,extra,pose</param>
+    public void ChangeSprite(string[] spriteData)
     {
         var name = spriteData[0];
         var clothes = spriteData[1];
         var emote = spriteData[2];
         var extra = spriteData[3];
         var pose = spriteData[4];
+
         if (s_Characters.ContainsKey(name))
         {
             s_Characters[name].Init(name, clothes, emote, extra, pose);
         }
     }
 
-    public void DeleteSprite(params string[] name)
+    /// <summary>
+    /// Deletes an existing character in the dictionary
+    /// </summary>
+    /// <param name="name">Character name</param>
+    public void DeleteSprite(string[] name)
     {
         if (s_Characters.ContainsKey(name[0]))
         {
@@ -230,37 +177,45 @@ public class Commands : MonoBehaviour
         }
     }
 
-    public void GoLine(params string[] lineNum)
+    public void GoLine(string[] lineNum)
     {
-        TextAppear.ChangeCurrentLine(int.Parse(lineNum[0]));
+        TextAppear.ChangeCurrentLine(int.Parse(lineNum[0]), false);
     }
 
-    public void Compare(params string[] compareData)
+    /// <summary>
+    /// Compares the parameter value with the given value. 
+    /// If the parameter is greater than or equal to the value being compared, it switches to the transmitted text line
+    /// </summary>
+    /// <param name="compareData">An array of three elements: 0 - Param name, 1 - Compare value, 2 - Line number</param>
+    public void Compare(string[] compareData)
     {
         var compareParameter = GameParameters.s_Parameters[compareData[0]];
         var compareValue = int.Parse(compareData[1]);
         var lineNum = compareData[2];
+
         if (compareParameter >= compareValue)
         {
-            GoLine(lineNum);
+            GoLine(new string[] { lineNum });
         }
     }
 
-    //Timer
     public IEnumerator CountDown(float time)
     {
-        TimerText.alpha = 1.0f;
+        _timerText.alpha = 1.0f;
+
         while(time > 0.01f)
         {
             time -= Time.deltaTime;
-            TimerText.text = time.ToString("0.00");
+            _timerText.text = time.ToString("0.00");
             yield return null;
         }
+
         _timeoutButton.onClick.Invoke();
+        TextAppear.ShowNextTextLine();
         _timeoutButton = null;
     }
 
-    public void SetTimer(params string[] time)
+    public void SetTimer(string[] time)
     {
         _timeCoroutine = StartCoroutine(CountDown(float.Parse(time[0])));
     }
@@ -274,34 +229,70 @@ public class Commands : MonoBehaviour
         }
     }
 
-    public void SetName(params string[] name)
+    public void SetName(string[] name)
     {
-        CharacterName.text = name[0];
+        _characterName.text = name[0];
     }
 
-    // Should Add DOTween?
-    public void MoveCharacter(params string[] moveData)
+    /// <summary>
+    /// Moves the character by a given value.
+    /// </summary>
+    /// <param name="moveData">An array of two elements: 0 - Character name, 1 - Shift</param>
+    public void MoveCharacter(string[] moveData)
     {
         var name = moveData[0];
         var shift = float.Parse(moveData[1]);
+
         if (s_Characters.ContainsKey(name))
         {
-            s_Characters[name].GetComponent<RectTransform>().localPosition += Vector3.right * shift;
+            s_Characters[name].MoveSprite(Vector3.right * shift);
         }
     }
 
-    public void ShowEnd(params string[] end)
+    /// <summary>
+    /// Enables the ending panel
+    /// </summary>
+    /// <param name="end"></param>
+    public void ShowEnd(string[] end)
     {
+        s_IsEndReached = true;
+
         foreach (var key in GameParameters.s_Parameters.Keys)
         {
-            ParameterInfoText.text += $"{key} : {GameParameters.s_Parameters[key]}";
+            _parameterInfoText.text += $"{key} : {GameParameters.s_Parameters[key]}";
         }
-        EndPanel.SetActive(true);
+
+        _endPanel.SetActive(true);
     }
 
-    private void OnDisable()
+    public void CancelChoose()
     {
-        onBackSet -= SetBack;
-        back.Completed -= ChangeBackground; // Has Error on Disabling
+        s_IsChooseEventActive = false;
+        _timerText.alpha = 0f;
+        StopTimer();
+        DestroyChooseButtons();
+    }
+
+    private void Start()
+    {
+        _timerText.alpha = 0f;
+        s_Commands = new Dictionary<string, string>();
+        s_Characters = new Dictionary<string, Character>();
+        s_Commands.Add("back", "SetBack");
+        s_Commands.Add("choose", "Choose");
+        s_Commands.Add("music", "SetMusic");
+        s_Commands.Add("init", "CreateCharacter");
+        s_Commands.Add("change", "ChangeSprite");
+        s_Commands.Add("delete", "DeleteSprite");
+        s_Commands.Add("go", "GoLine");
+        s_Commands.Add("compare", "Compare");
+        s_Commands.Add("time", "SetTimer");
+        s_Commands.Add("speaker", "SetName");
+        s_Commands.Add("move", "MoveCharacter");
+        s_Commands.Add("end", "ShowEnd");
+        s_Commands.Add("shift", "ChangeParameter");
+        _buttonHandle = Addressables.LoadAssetAsync<GameObject>("ChooseButton");
+        _characterTemplateHandle = Addressables.LoadAssetAsync<GameObject>("Character");
+        SceneData = new SceneData();
     }
 }

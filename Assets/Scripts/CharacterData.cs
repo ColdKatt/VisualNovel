@@ -1,11 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-[CreateAssetMenu(fileName = "Character", menuName = "Character")]
-public class CharacterData : ScriptableObject
+public class CharacterData
 {
-
     public string Name { get; set; }
     public string Clothes { get; set; }
     public string Emote { get; set; }

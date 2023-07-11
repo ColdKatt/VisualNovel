@@ -4,24 +4,19 @@ using UnityEngine;
 using LTouch = Lean.Touch.LeanTouch;
 using LFinger = Lean.Touch.LeanFinger;
 
+/// <summary>
+/// Swipe and tap management class
+/// </summary>
 public class InputSystem : MonoBehaviour
 {
-    public GameObject UI;
-    public GameObject History;
-
     public bool IsSwipedActionActived;
+    public bool IsSkipping;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        LTouch.OnFingerSwipe += CheckDirection;
-    }
+    [SerializeField] private GameObject _ui;
+    [SerializeField] private GameObject _history;
+    [SerializeField] private TextAppear _textAppear;
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
+    private Coroutine _skipCoroutine;
 
     public void CheckDirection(LFinger finger)
     {
@@ -29,62 +24,87 @@ public class InputSystem : MonoBehaviour
         {
             ReturnToDefault();
         }
-        Debug.Log(finger.SwipeScreenDelta);
+
         var fingerDelta = Mathf.Abs(finger.SwipeScreenDelta.x) > Mathf.Abs(finger.SwipeScreenDelta.y)
-                          ? (finger.SwipeScreenDelta.x > 0 ? "Right" : "Left")
-                          : (finger.SwipeScreenDelta.y > 0 ? "Up" : "Down");
-        Debug.Log(fingerDelta);
+                          ? (finger.SwipeScreenDelta.x > 0 ? Direction.Right : Direction.Left)
+                          : (finger.SwipeScreenDelta.y > 0 ? Direction.Up : Direction.Down);
+
         SwipeTransport(fingerDelta);
     }
 
-    public void SwipeTransport(string direction)
+    public void SwipeTransport(Direction direction)
     {
         switch (direction)
         {
-            case "Right":
-                //skip
+            case Direction.Right:
+                StartSkip();
                 break;
-            case "Left":
+            case Direction.Left:
                 ShowHistory();
                 break;
-            case "Up":
+            case Direction.Up:
                 Application.Quit();
                 break;
-            case "Down":
-                HideUI(direction);
+            case Direction.Down:
+                HideUI();
                 break;
             default:
                 break;
         }
     }
 
-    public void HideUI(string direction)
+    public void HideUI()
     {
-        if (UI != null)
-        {
-            UI.SetActive(false);
-        }
-        Debug.Log("UI Hided");
+        _ui?.SetActive(false);
         IsSwipedActionActived = true;
     }
 
     public void ReturnToDefault()
     {
-        if (IsSwipedActionActived)
-        {
-            UI.SetActive(true);
-            History.SetActive(false);
-            IsSwipedActionActived = false;
-            return;
-        }
+        StopSkip();
+        _ui?.SetActive(true);
+        _history?.SetActive(false);
+        IsSwipedActionActived = false;
     }
 
     public void ShowHistory()
     {
-        if (History != null)
+        _history?.SetActive(true);
+        IsSwipedActionActived = true;
+    }
+
+    private IEnumerator Skip()
+    {
+        while(IsSkipping)
         {
-            History.SetActive(true);
-            IsSwipedActionActived = true;
+            _textAppear.ShowNextTextLine();
+            yield return new WaitForSeconds(0.1f);
         }
+        _skipCoroutine = null;
+    }
+
+    private void StartSkip()
+    {
+        StopSkip();
+
+        IsSkipping = true;
+        IsSwipedActionActived = true;
+        _skipCoroutine = StartCoroutine(Skip());
+    }
+
+    public void StopSkip()
+    {
+        IsSkipping = false;
+
+        if (_skipCoroutine != null)
+        {
+            StopCoroutine(_skipCoroutine);
+            _skipCoroutine = null;
+        }
+    }
+
+    private void Start()
+    {
+        LTouch.OnFingerSwipe += CheckDirection;
     }
 }

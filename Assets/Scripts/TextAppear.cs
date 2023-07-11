@@ -10,86 +10,84 @@ using UnityEngine.UI;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
+using UnityEngine.SceneManagement;
 
+/// <summary>
+/// A class for managing appearing text
+/// </summary>
 public class TextAppear : MonoBehaviour
 {
-    public Commands Commands;
-    public AsyncOperationHandle<TextAsset> Scenario;
-    public TMP_Text WindowText;
-    private string[] _textLines;
-    private string _textLine = "—ъешь ж ещЄ этих м€гких французских булок, да выпей чаю...!";
-    private string[] _textLineParams;
-    private string[] _params;
-    public static int currentLine = 0;
+    public int CurrentLine = 0;
 
-    public InputSystem input;
+    [SerializeField] private InputSystem _input;
 
-    private Coroutine m_coroutine;
+    [SerializeField] private Commands _commands;
+    [SerializeField] private TMP_Text _windowText;
 
-    void Start()
-    {
-        Scenario = Addressables.LoadAssetAsync<TextAsset>("TestScenario"); // Scenario structure: MethodA;param1;param2...|MethodB;param1;param2;...|...|TextLine
-        Scenario.Completed += GetScenario;
-        Lean.Touch.LeanTouch.OnFingerTap += ShowNextTextLine;
-    }
+    private AsyncOperationHandle<TextAsset> _scenarioHandle;
+    private XElement[] _textLines;
+    private XElement _textLine;
 
-    //void Update()
-    //{
-    //    ShowNextTextLine();
-    //}
+    private Coroutine _printTextCoroutine;
 
     public IEnumerator PrintText()
     {
-        Debug.Log($"Current line: {currentLine}");
-        WindowText.text = "";
-        _textLine = _textLines[currentLine];
-        _textLineParams = _textLine.Split('|');
+        Debug.Log($"Current line: {CurrentLine}");
+        _windowText.text = "";
+        _textLine = _textLines[CurrentLine];
 
-        for (var i = 0; i < _textLineParams.Length - 1; i++)
-        {
-            _params = _textLineParams[i].Split(';');
-            var type = Type.GetType("Commands");
-            var method = type.GetMethod(_params[0]);
-            var parameters = _params.Skip(1).ToArray();
-            method.Invoke(Commands, new object[] { parameters });
-        }
+        var sceneData = _textLine.Element("sceneData");
+        var sprites = _textLine.Element("sprites");
+        var gameParams = _textLine.Element("params");
+        var text = _textLine.Element("text");
 
-        foreach (var letter in _textLineParams[_textLineParams.Length - 1])
+        ProcessAttributes(_textLine);
+        ProcessAttributes(sceneData);
+        ProcessAttributes(sprites, "sprite");
+        ProcessAttributes(gameParams, "param");
+        ProcessAttributes(text);
+
+        foreach (var letter in text.Value)
         {
-            Debug.Log(letter);
-            WindowText.text += letter;
+            _windowText.text += letter;
             yield return new WaitForSeconds(0.02f);
         }
-        m_coroutine = null;
-        currentLine++;
+
+        _printTextCoroutine = null;
     }
 
     public void ShowNextTextLine(Lean.Touch.LeanFinger finger)
     {
-        if (!Commands.s_isChooseEventActive)
-        {
-            ShowNextTextLine();
-        }
+        _input.StopSkip();
+        
+        ShowNextTextLine();
     }
 
     public void ShowNextTextLine()
     {
-        if (input.IsSwipedActionActived)
+        if (_input.IsSwipedActionActived && !_input.IsSkipping)
         {
-            input.ReturnToDefault();
+            _input.ReturnToDefault();
             return;
         }
 
-        if (m_coroutine != null)
+        if (Commands.s_IsEndReached || Commands.s_IsChooseEventActive)
         {
-            StopCoroutine(m_coroutine);
-            m_coroutine = null;
-            WindowText.text = _textLineParams[_textLineParams.Length - 1];
-            currentLine++;
+            _input.StopSkip();
+            return;
+        }
+
+        if (_printTextCoroutine != null)
+        {
+            StopCoroutine(_printTextCoroutine);
+            _printTextCoroutine = null;
+            _windowText.text = _textLine.Value;
         }
         else
         {
-            m_coroutine = StartCoroutine(PrintText());
+            _printTextCoroutine = StartCoroutine(PrintText());
+            CurrentLine++;
         }
     }
 
@@ -97,18 +95,57 @@ public class TextAppear : MonoBehaviour
     {
         if (scenario.Status == AsyncOperationStatus.Succeeded)
         {
-            _textLines = scenario.Result.text.Split('\n');
-            foreach (var line in _textLines)
-            {
-                Debug.Log(line);
-            }
-            Debug.Log("TestScenario");
-            Debug.Log(scenario.Result);
+            var scenarioXml = XDocument.Parse(scenario.Result.text).Element("root").Element("scenario");
+            _textLines = scenarioXml.Elements("textLine").ToArray();
         }
     }
 
-    public static void ChangeCurrentLine(int lineNum)
+    /// <summary>
+    /// Switching to the required text line
+    /// </summary>
+    /// <param name="lineNum">Required TextLine Number</param>
+    /// <param name="isForce">If false, line changing occurs after the tap</param>
+    public void ChangeCurrentLine(int lineNum, bool isForce)
     {
-        currentLine = lineNum;
+        CurrentLine = lineNum;
+
+        if (!isForce) return;
+
+        if (_printTextCoroutine != null)
+        {
+            StopCoroutine(_printTextCoroutine);
+            _printTextCoroutine = null;
+        }
+        ShowNextTextLine();
+    }
+
+    private void Start()
+    {
+        _scenarioHandle = Addressables.LoadAssetAsync<TextAsset>("TestScenarioXml");
+        _scenarioHandle.Completed += GetScenario;
+        Lean.Touch.LeanTouch.OnFingerTap += ShowNextTextLine;
+    }
+
+    private void ProcessAttributes(XElement element)
+    {
+        if (element == null) return;
+
+        foreach (var attribute in element.Attributes())
+        {
+            var type = Type.GetType("Commands");
+            var method = type.GetMethod(Commands.s_Commands[attribute.Name.ToString()]);
+            var parameters = attribute.Value.Split(",");
+            method.Invoke(_commands, new object[] { parameters });
+        }
+    }
+
+    private void ProcessAttributes(XElement element, string subElement)
+    {
+        if (element == null) return;
+
+        foreach (var sub in element.Elements(subElement))
+        {
+            ProcessAttributes(sub);
+        }
     }
 }
