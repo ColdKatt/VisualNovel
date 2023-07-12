@@ -25,6 +25,8 @@ public class TextAppear : MonoBehaviour
     [SerializeField] private Commands _commands;
     [SerializeField] private TMP_Text _windowText;
 
+    [SerializeField] private TTS _tts;
+
     private AsyncOperationHandle<TextAsset> _scenarioHandle;
     private XElement[] _textLines;
     private XElement _textLine;
@@ -47,6 +49,11 @@ public class TextAppear : MonoBehaviour
         ProcessAttributes(sprites, "sprite");
         ProcessAttributes(gameParams, "param");
         ProcessAttributes(text);
+
+        if (_input.IsTTSEnabled)
+        {
+            _tts.Speak(text.Value);
+        }
 
         foreach (var letter in text.Value)
         {

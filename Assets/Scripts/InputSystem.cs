@@ -11,10 +11,12 @@ public class InputSystem : MonoBehaviour
 {
     public bool IsSwipedActionActived;
     public bool IsSkipping;
+    public bool IsTTSEnabled;
 
     [SerializeField] private GameObject _ui;
     [SerializeField] private GameObject _history;
     [SerializeField] private TextAppear _textAppear;
+    [SerializeField] private TTS _tts;
 
     private Coroutine _skipCoroutine;
 
@@ -103,8 +105,19 @@ public class InputSystem : MonoBehaviour
         }
     }
 
+    private void EnableTTS(LFinger finger)
+    {
+        IsTTSEnabled = !IsTTSEnabled;
+
+        var startText = "Синтез речи ";
+        startText += IsTTSEnabled ? "включен" : "выключен";
+
+        _tts.Speak(startText);
+    }
+
     private void Start()
     {
         LTouch.OnFingerSwipe += CheckDirection;
+        LTouch.OnFingerOld += EnableTTS;
     }
 }

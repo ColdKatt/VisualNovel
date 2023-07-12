@@ -6,6 +6,7 @@
     <type fullname="History" preserve="all" />
     <type fullname="InputSystem" preserve="all" />
     <type fullname="TextAppear" preserve="all" />
+    <type fullname="TTS" preserve="all" />
   </assembly>
   <assembly fullname="LeanTouch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
     <type fullname="Lean.Touch.LeanTouch" preserve="all" />
